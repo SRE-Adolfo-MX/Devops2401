@@ -2,11 +2,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_key_pair" "ssh_key_pair" {
-  key_name   = "pin"
-  public_key = tls_private_key.ssh_key.public_key_openssh
-}
-
 # Crear una nueva VPC para EKS
 module "eks_vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -45,7 +40,6 @@ module "eks" {
       desired_capacity = 3
       max_capacity     = 5
       min_capacity     = 1
-      key_name        = aws_key_pair.ssh_key_pair.key_name
     }
   }
 
