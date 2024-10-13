@@ -31,8 +31,8 @@ module "eks" {
   vpc_id          = data.aws_vpc.default.id
   subnet_ids      = data.aws_subnet_ids.default.ids
 
-  # Usamos node_groups en lugar de managed_node_groups
-  node_groups = {
+  # Usamos managed_node_groups
+  managed_node_groups = {
     eks_nodes = {
       desired_capacity = 3
       max_capacity     = 5
