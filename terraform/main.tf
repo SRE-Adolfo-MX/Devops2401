@@ -5,7 +5,7 @@ provider "aws" {
 # Crear una nueva VPC para EKS
 module "eks_vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "3.11.0" # Puedes usar la última versión estable
+  version = "3.14.0" # Puedes usar la última versión estable
 
   name = "eks-mundos-e-vpc"
   cidr = "10.0.0.0/16"
