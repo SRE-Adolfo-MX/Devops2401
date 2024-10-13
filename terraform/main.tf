@@ -52,46 +52,7 @@ module "eks" {
   }
 }
 
-# Reglas de seguridad para SSH
-resource "aws_security_group_rule" "allow_ssh" {
-  type            = "ingress"
-  from_port       = 22
-  to_port         = 22
-  protocol        = "tcp"
-  cidr_blocks     = ["0.0.0.0/0"]
-  security_group_id = module.eks.node_security_group_id
-}
 
-# Crear una política IAM para acceso completo a ECR
-resource "aws_iam_policy" "full_ecr_access" {
-  name        = "FullECRAccessPolicy"
-  description = "Policy to provide full access to ECR"
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ecr:*"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
-}
 
-# Adjuntar la política IAM al rol de nodos EKS
-resource "aws_iam_role_policy_attachment" "eks_nodes_ecr_access" {
-  role       = module.eks.node_groups["eks_nodes"].iam_role_name
-  policy_arn = aws_iam_policy.full_ecr_access.arn
-}
 
-# Guardar la clave privada en un archivo local
-resource "local_file" "private_key" {
-  content  = tls_private_key.ssh_key.private_key_pem
-  filename = "${path.module}/pin.pem"
-  file_permission = "0600"
-}
