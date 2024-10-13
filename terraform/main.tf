@@ -31,8 +31,8 @@ module "eks" {
   vpc_id          = data.aws_vpc.default.id
   subnet_ids      = data.aws_subnet_ids.default.ids
 
-  # Usamos managed_node_groups en lugar de node_groups
-  managed_node_groups = {
+  # Usamos node_groups en lugar de managed_node_groups
+  node_groups = {
     eks_nodes = {
       desired_capacity = 3
       max_capacity     = 5
@@ -68,29 +68,4 @@ resource "aws_iam_policy" "full_ecr_access" {
 
   policy = <<EOF
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ecr:*"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
-}
-
-# Adjuntar la política IAM al rol de nodos EKS
-resource "aws_iam_role_policy_attachment" "eks_nodes_ecr_access" {
-  role       = module.eks.worker_iam_role_name
-  policy_arn = aws_iam_policy.full_ecr_access.arn
-}
-
-# Guardar la clave privada en un archivo local
-resource "local_file" "private_key" {
-  content  = tls_private_key.ssh_key.private_key_pem
-  filename = "${path.module}/pin.pem"
-  file_permission = "0600"
-}
+ 
