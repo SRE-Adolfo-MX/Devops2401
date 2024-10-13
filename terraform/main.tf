@@ -25,20 +25,21 @@ data "aws_subnet_ids" "default" {
 # Crear el cluster EKS utilizando la VPC y subnets predeterminadas
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
-  version         = "19.15.0"
+  version = "~> 20.0"
   cluster_name    = "eks-mundos-e"
-  cluster_version = "1.27"
   vpc_id          = data.aws_vpc.default.id
   subnet_ids      = data.aws_subnet_ids.default.ids
 
   # Usamos managed_node_groups
-  managed_node_groups = {
-    eks_nodes = {
+    eks_managed_node_groups = {
+    example = {
+      ami_type       = "AL2_x86_64"
+      instance_types = ["m6i.large"]
+
       desired_capacity = 3
       max_capacity     = 5
       min_capacity     = 1
-
-      instance_type = "t3.small"
+      desired_size = 1
       key_name      = aws_key_pair.ssh_key_pair.key_name
     }
   }
