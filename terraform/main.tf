@@ -2,6 +2,7 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# Crear la clave SSH
 resource "tls_private_key" "ssh_key" {
   algorithm = "RSA"
   rsa_bits  = 4096
@@ -12,33 +13,26 @@ resource "aws_key_pair" "ssh_key_pair" {
   public_key = tls_private_key.ssh_key.public_key_openssh
 }
 
-module "eks_vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "3.11.0"
+# Referenciar la VPC y subnets predeterminadas
+data "aws_vpc" "default" {
+  default = true
+}
 
-  name = "eks-mundos-e-vpc"
-  cidr = "10.0.0.0/16"
-
-  azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-  private_subnets = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
-
-  enable_nat_gateway = true
-  single_nat_gateway = true
-
-  tags = {
-    Name = "eks-mundos-e-vpc"
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
 }
 
-
+# Crear el cluster EKS utilizando la VPC y subnets predeterminadas
 module "eks" {
   source          = "terraform-aws-modules/eks/aws"
   version         = "19.15.0"
   cluster_name    = "eks-mundos-e"
   cluster_version = "1.27"
-  subnets         = module.eks_vpc.private_subnets
-  vpc_id          = module.eks_vpc.vpc_id
+  vpc_id          = data.aws_vpc.default.id
+  subnets         = data.aws_subnets.default.ids
 
   node_groups = {
     eks_nodes = {
@@ -47,14 +41,12 @@ module "eks" {
       min_capacity     = 1
 
       instance_type = "t3.small"
-      key_name      = aws_key_pair.ssh_key_pair.key_name 
+      key_name      = aws_key_pair.ssh_key_pair.key_name
     }
   }
 
   manage_aws_auth = true
-
-
-  enable_irsa = true
+  enable_irsa     = true
 
   tags = {
     Environment = "dev"
@@ -62,17 +54,17 @@ module "eks" {
   }
 }
 
-
+# Reglas de seguridad para SSH
 resource "aws_security_group_rule" "allow_ssh" {
   type            = "ingress"
   from_port       = 22
   to_port         = 22
   protocol        = "tcp"
-  cidr_blocks     = ["0.0.0.0/0"] 
+  cidr_blocks     = ["0.0.0.0/0"]
   security_group_id = module.eks.worker_security_group_id
 }
 
-
+# Crear una política IAM para acceso completo a ECR
 resource "aws_iam_policy" "full_ecr_access" {
   name        = "FullECRAccessPolicy"
   description = "Policy to provide full access to ECR"
@@ -93,16 +85,15 @@ resource "aws_iam_policy" "full_ecr_access" {
 EOF
 }
 
+# Adjuntar la política IAM al rol de nodos EKS
 resource "aws_iam_role_policy_attachment" "eks_nodes_ecr_access" {
   role       = module.eks.worker_iam_role_name
   policy_arn = aws_iam_policy.full_ecr_access.arn
 }
 
-
+# Guardar la clave privada en un archivo local
 resource "local_file" "private_key" {
   content  = tls_private_key.ssh_key.private_key_pem
   filename = "${path.module}/pin.pem"
-
-  
   file_permission = "0600"
 }
