@@ -18,7 +18,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet_ids" "default" {
+data "aws_subnets" "default" {
   vpc_id = data.aws_vpc.default.id
 }
 
@@ -28,7 +28,7 @@ module "eks" {
   version = "~> 20.0"
   cluster_name    = "eks-mundos-e"
   vpc_id          = data.aws_vpc.default.id
-  subnet_ids      = data.aws_subnet_ids.default.ids
+  subnet_ids      = data.aws_subnets.default.ids
 
   # Usamos managed_node_groups
     eks_managed_node_groups = {
@@ -59,7 +59,7 @@ resource "aws_security_group_rule" "allow_ssh" {
   to_port         = 22
   protocol        = "tcp"
   cidr_blocks     = ["0.0.0.0/0"]
-  security_group_id = module.eks.worker_security_group_id
+  security_group_id = module.eks.node_security_group_id
 }
 
 # Crear una política IAM para acceso completo a ECR
@@ -85,7 +85,7 @@ EOF
 
 # Adjuntar la política IAM al rol de nodos EKS
 resource "aws_iam_role_policy_attachment" "eks_nodes_ecr_access" {
-  role       = module.eks.worker_iam_role_name
+  role       = module.eks.node_groups["eks_nodes"].iam_role_name
   policy_arn = aws_iam_policy.full_ecr_access.arn
 }
 
