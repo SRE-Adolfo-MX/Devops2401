@@ -2,78 +2,155 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# Crear una nueva VPC para EKS
-module "eks_vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.0" # Asegúrate de que sea la última versión estable
-
-  name = "eks-mundos-e-vpc"
-  cidr = "10.0.0.0/16"
-
-  azs             = ["us-east-1a", "us-east-1b", "us-east-1c"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-  private_subnets = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
-
-  enable_nat_gateway = true
-  single_nat_gateway = true
+# Crear una VPC
+resource "aws_vpc" "eks_vpc" {
+  cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "eks-mundos-e-vpc"
+    Name = "eks-vpc"
   }
 }
 
-# Crear el clúster EKS utilizando la nueva VPC y subnets
-module "eks" {
-  source          = "terraform-aws-modules/eks/aws"
-  version         = "~> 20.0"
-  cluster_name    = "eks-mundos-e"
-  cluster_version = "1.27" # Cambia la versión según tus necesidades
-  vpc_id          = module.eks_vpc.vpc_id
-  subnet_ids      = module.eks_vpc.private_subnets
-
-  # Usamos managed_node_groups
-  eks_managed_node_groups = {
-    example = {
-      ami_type       = "AL2_x86_64"
-      instance_types = ["m6i.large"]
-
-      desired_capacity = 3
-      max_capacity     = 5
-      min_capacity     = 1
-    }
-  }
-
-  enable_irsa = true
+# Crear subredes públicas
+resource "aws_subnet" "eks_public_subnet_a" {
+  vpc_id            = aws_vpc.eks_vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
 
   tags = {
-    Environment = "dev"
-    Name        = "eks-mundos-e"
+    Name = "eks-public-subnet-a"
   }
 }
 
-# Regla de seguridad para permitir SSH
-resource "aws_security_group_rule" "allow_ssh" {
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = module.eks.cluster_security_group_id
+resource "aws_subnet" "eks_public_subnet_b" {
+  vpc_id            = aws_vpc.eks_vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1b"
+
+  tags = {
+    Name = "eks-public-subnet-b"
+  }
 }
 
-# Crear una política de IAM para acceso completo a ECR
-resource "aws_iam_policy" "full_ecr_access" {
-  name        = "FullECRAccessPolicy"
-  description = "Policy to provide full access to ECR"
+# Crear un Internet Gateway
+resource "aws_internet_gateway" "eks_ig" {
+  vpc_id = aws_vpc.eks_vpc.id
 
-  policy = jsonencode({
+  tags = {
+    Name = "eks-internet-gateway"
+  }
+}
+
+# Crear una tabla de rutas para las subredes públicas
+resource "aws_route_table" "eks_public_rt" {
+  vpc_id = aws_vpc.eks_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.eks_ig.id
+  }
+
+  tags = {
+    Name = "eks-public-route-table"
+  }
+}
+
+# Asociar las subredes públicas a la tabla de rutas
+resource "aws_route_table_association" "eks_public_subnet_a_assoc" {
+  subnet_id      = aws_subnet.eks_public_subnet_a.id
+  route_table_id = aws_route_table.eks_public_rt.id
+}
+
+resource "aws_route_table_association" "eks_public_subnet_b_assoc" {
+  subnet_id      = aws_subnet.eks_public_subnet_b.id
+  route_table_id = aws_route_table.eks_public_rt.id
+}
+
+# Crear el clúster EKS
+resource "aws_eks_cluster" "eks_cluster" {
+  name     = "my-eks-cluster"
+  role_arn = aws_iam_role.eks_cluster_role.arn
+
+  vpc_config {
+    subnet_ids = [
+      aws_subnet.eks_public_subnet_a.id,
+      aws_subnet.eks_public_subnet_b.id
+    ]
+  }
+
+  depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
+}
+
+# Crear el rol de IAM para el clúster EKS
+resource "aws_iam_role" "eks_cluster_role" {
+  name = "eks_cluster_role"
+
+  assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
         Effect = "Allow"
-        Action = ["ecr:*"]
-        Resource = "*"
+        Sid    = ""
       }
     ]
   })
+}
+
+# Adjuntar políticas al rol de IAM del clúster EKS
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.eks_cluster_role.name
+}
+
+# Crear grupo de nodos EKS
+resource "aws_eks_node_group" "eks_node_group" {
+  cluster_name    = aws_eks_cluster.eks_cluster.name
+  node_group_name = "my-node-group"
+  node_role_arn   = aws_iam_role.eks_node_role.arn
+  subnet_ids      = [
+    aws_subnet.eks_public_subnet_a.id,
+    aws_subnet.eks_public_subnet_b.id
+  ]
+
+  scaling_config {
+    desired_size = 3
+    max_size     = 5
+    min_size     = 1
+  }
+
+  depends_on = [aws_eks_cluster.eks_cluster]
+}
+
+# Crear el rol de IAM para los nodos EKS
+resource "aws_iam_role" "eks_node_role" {
+  name = "eks_node_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Effect = "Allow"
+        Sid    = ""
+      }
+    ]
+  })
+}
+
+# Adjuntar políticas al rol de IAM de los nodos EKS
+resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.eks_node_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "eks_CNI_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.eks_node_role.name
 }
