@@ -41,7 +41,7 @@ jobs:
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.TOKEN }}
-          approvers: "Adolph-SRE-Wize"
+          approvers: "adolfoDelCastillo"
           minimum-approvals: 1  
           issue-title: "Approval needed: Deploy to AWS"
           issue-body: "Please approve or deny the deployment of Terraform changes to the AWS environment."
@@ -80,7 +80,7 @@ jobs:
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.TOKEN }}
-          approvers: "Adolph-SRE-Wize"
+          approvers: "adolfoDelCastillo"
           minimum-approvals: 1  
           issue-title: "Approval needed: Destroy Terraform Resources"
           issue-body: "Please approve or deny the destruction of Terraform-managed resources in the AWS environment."
