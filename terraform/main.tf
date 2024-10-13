@@ -9,7 +9,7 @@ resource "tls_private_key" "ssh_key" {
 }
 
 resource "aws_key_pair" "ssh_key_pair" {
-  key_name   = "pin"  
+  key_name   = "pin"
   public_key = tls_private_key.ssh_key.public_key_openssh
 }
 
@@ -18,11 +18,8 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
 }
 
 # Crear el cluster EKS utilizando la VPC y subnets predeterminadas
@@ -32,9 +29,10 @@ module "eks" {
   cluster_name    = "eks-mundos-e"
   cluster_version = "1.27"
   vpc_id          = data.aws_vpc.default.id
-  subnets         = data.aws_subnets.default.ids
+  subnet_ids      = data.aws_subnet_ids.default.ids
 
-  node_groups = {
+  # Usamos managed_node_groups en lugar de node_groups
+  managed_node_groups = {
     eks_nodes = {
       desired_capacity = 3
       max_capacity     = 5
@@ -45,8 +43,7 @@ module "eks" {
     }
   }
 
-  manage_aws_auth = true
-  enable_irsa     = true
+  enable_irsa = true
 
   tags = {
     Environment = "dev"
