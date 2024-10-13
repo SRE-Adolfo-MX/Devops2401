@@ -2,12 +2,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# Crear la clave SSH
-resource "tls_private_key" "ssh_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
 resource "aws_key_pair" "ssh_key_pair" {
   key_name   = "pin"
   public_key = tls_private_key.ssh_key.public_key_openssh
@@ -43,8 +37,8 @@ module "eks" {
   subnet_ids      = module.eks_vpc.private_subnets
 
   # Usamos managed_node_groups
-  managed_node_groups = {
-    eks_nodes = {
+  eks_managed_node_groups = {
+    example = {
       ami_type       = "AL2_x86_64"
       instance_types = ["m6i.large"]
 
@@ -88,18 +82,4 @@ resource "aws_iam_policy" "full_ecr_access" {
       }
     ]
   })
-}
-
-# Adjuntar la política de ECR al rol de los nodos de EKS
-resource "aws_iam_role_policy_attachment" "eks_nodes_ecr_access" {
-  role       = module.eks.node_groups["eks_nodes"].iam_role_name
-  policy_arn = aws_iam_policy.full_ecr_access.arn
-}
-
-# Guardar la clave privada en un archivo local
-resource "local_file" "private_key" {
-  content  = tls_private_key.ssh_key.private_key_pem
-  filename = "${path.module}/pin.pem"
-  
-  file_permission = "0600"
 }
