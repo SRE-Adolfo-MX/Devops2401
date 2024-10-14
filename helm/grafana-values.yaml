@@ -1,0 +1,68 @@
+# grafana-values.yaml
+
+# Configuración del servicio Grafana
+service:
+  enabled: true
+  type: LoadBalancer  # Cambia a NodePort o ClusterIP según tus necesidades
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  # Para un Network Load Balancer en EKS
+
+# Configuración de la persistencia de datos
+persistence:
+  enabled: true
+  size: 5Gi  # Tamaño del volumen persistente
+  storageClass: gp2  # Cambia esto según tu configuración de EKS
+
+# Configuración de la autenticación
+admin:
+  existingSecret: grafana-admin-secret  # Secreto existente para las credenciales de admin
+  user: admin  # Nombre de usuario del admin
+  password: admin  # Contraseña del admin (opcional, puedes usar un secreto)
+
+# Configuración de los dashboards y datasources
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+# Configura los datos de origen (datasources)
+datasources:
+  enabled: true
+  dashboards:
+    default:
+      datasource:
+        type: prometheus
+        url: http://prometheus-server.monitoring.svc.cluster.local:80  # URL de tu servicio de Prometheus
+        access: proxy
+
+# Configuración de recursos
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 200m
+    memory: 512Mi
+
+# Configuración de la política de RBAC si es necesario
+rbac:
+  create: true  # Crea una política RBAC para Grafana
+
+# Configuración del tiempo de espera y del tiempo de vida del pod
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 60
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 60

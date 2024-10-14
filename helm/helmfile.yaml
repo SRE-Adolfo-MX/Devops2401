@@ -1,6 +1,10 @@
 repositories:
   - name: ingress-nginx
     url: https://kubernetes.github.io/ingress-nginx
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
 
 releases:
   - name: nginx
@@ -8,3 +12,14 @@ releases:
     chart: ingress-nginx/ingress-nginx
     values:
       - nginx-values.yaml
+  - name: prometheus
+    chart: prometheus-community/prometheus
+    namespace: monitoring
+    values:
+      - prometheus-values.yaml
+
+  - name: grafana
+    chart: grafana/grafana
+    namespace: monitoring
+    values:
+      - grafana-values.yaml

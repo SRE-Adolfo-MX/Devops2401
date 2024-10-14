@@ -1,0 +1,59 @@
+alertmanager:
+  enabled: true
+  persistentVolume:
+    enabled: true
+    size: 2Gi
+    storageClass: gp2  # Cambia esto según tu configuración de EKS
+
+server:
+  persistentVolume:
+    enabled: true
+    size: 5Gi
+    storageClass: gp2  # Cambia esto según tu configuración de EKS
+
+  service:
+    enabled: true
+    type: ClusterIP  # Cambia a NodePort o LoadBalancer si necesitas acceso externo
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb" # Si necesitas un NLB en EKS
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+  retention: 30d  # Tiempo de retención de datos
+
+  scrapeConfigs:
+    - job_name: 'kubernetes-nodes'
+      kubernetes_sd_configs:
+        - role: node
+      relabel_configs:
+        - action: keep
+          source_labels: [__meta_kubernetes_node_name]
+          regex: .*
+
+    - job_name: 'kubernetes-pods'
+      kubernetes_sd_configs:
+        - role: pod
+      relabel_configs:
+        - action: keep
+          source_labels: [__meta_kubernetes_namespace]
+          regex: monitoring  # Cambia esto si usas un namespace diferente
+
+  alerting:
+    alertmanagers:
+      - namespace: monitoring
+        name: prometheus-alertmanager
+        port: web
+
+serviceAccount:
+  create: true  # Crea un ServiceAccount para Prometheus
+  name: prometheus # Nombre del ServiceAccount
+
+# Configura la política de RBAC si es necesario
+rbac:
+  create: true
