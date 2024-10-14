@@ -1,25 +1,19 @@
 # grafana-values.yaml
 
-# Configuración del servicio Grafana
 service:
   enabled: true
-  type: LoadBalancer  # Cambia a NodePort o ClusterIP según tus necesidades
+  type: LoadBalancer
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  # Para un Network Load Balancer en EKS
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
 
-# Configuración de la persistencia de datos
 persistence:
   enabled: true
-  size: 5Gi  # Tamaño del volumen persistente
-  storageClass: gp2  # Cambia esto según tu configuración de EKS
+  size: 5Gi
+  storageClass: gp2
 
-# Configuración de la autenticación
 admin:
-  existingSecret: grafana-admin-secret  # Secreto existente para las credenciales de admin
-  user: admin  # Nombre de usuario del admin
-  password: admin  # Contraseña del admin (opcional, puedes usar un secreto)
+  existingSecret: grafana-admin-secret
 
-# Configuración de los dashboards y datasources
 dashboardProviders:
   dashboardproviders.yaml:
     apiVersion: 1
@@ -33,17 +27,16 @@ dashboardProviders:
         options:
           path: /var/lib/grafana/dashboards/default
 
-# Configura los datos de origen (datasources)
 datasources:
-  enabled: true
-  dashboards:
-    default:
-      datasource:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
         type: prometheus
-        url: http://prometheus-server.monitoring.svc.cluster.local:80  # URL de tu servicio de Prometheus
+        url: http://prometheus-server.monitoring.svc.cluster.local:80
         access: proxy
+        isDefault: true
 
-# Configuración de recursos
 resources:
   requests:
     cpu: 100m
@@ -52,11 +45,12 @@ resources:
     cpu: 200m
     memory: 512Mi
 
-# Configuración de la política de RBAC si es necesario
 rbac:
-  create: true  # Crea una política RBAC para Grafana
+  create: true
 
-# Configuración del tiempo de espera y del tiempo de vida del pod
+podAnnotations:
+  iam.amazonaws.com/role: arn:aws:iam::YOUR_ACCOUNT_ID:role/YOUR_IAM_ROLE
+
 livenessProbe:
   enabled: true
   initialDelaySeconds: 30
