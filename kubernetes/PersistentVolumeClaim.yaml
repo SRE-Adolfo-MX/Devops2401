@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-pvc
+  namespace: monitoring  # Cambia esto si estás usando otro namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi  # Debe coincidir con el PV
+  storageClassName: manual  # Debe coincidir con el PV

@@ -24,3 +24,4 @@ releases:
     chart: prometheus-community/prometheus
     values:
       - prometheus-values.yaml
+      - promtheus-storage.yaml
