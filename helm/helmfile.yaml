@@ -25,6 +25,12 @@ releases:
       - server:
           service:
             type: LoadBalancer
+          persistence:
+            enabled: true            # Habilitar persistencia
+            storageClass: manual     # Asegúrate de que esta clase de almacenamiento exista
+            accessModes:
+              - ReadWriteOnce
+            size: 10Gi               # Tamaño del volumen persistente
 
   - name: grafana
     namespace: monitoring
