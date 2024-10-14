@@ -16,6 +16,9 @@ resource "aws_subnet" "eks_public_subnet_a" {
   vpc_id            = aws_vpc.eks_vpc.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
+  
+  # Habilitar la asignación automática de IPs públicas
+  map_public_ip_on_launch = true
 
   tags = {
     Name = "eks-public-subnet-a"
@@ -26,6 +29,9 @@ resource "aws_subnet" "eks_public_subnet_b" {
   vpc_id            = aws_vpc.eks_vpc.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1b"
+  
+  # Habilitar la asignación automática de IPs públicas
+  map_public_ip_on_launch = true
 
   tags = {
     Name = "eks-public-subnet-b"
