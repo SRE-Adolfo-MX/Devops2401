@@ -1,48 +1,26 @@
 repositories:
-  - name: ingress-nginx
-    url: https://kubernetes.github.io/ingress-nginx
-  - name: prometheus-community
-    url: https://prometheus-community.github.io/helm-charts
+  - name: nginx-stable
+    url: https://charts.nginx.com/stable
   - name: grafana
     url: https://grafana.github.io/helm-charts
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
 
 releases:
-  - name: nginx-ingress
-    namespace: ingress-nginx
-    chart: ingress-nginx/ingress-nginx
+  - name: nginx
+    namespace: default
+    chart: nginx-stable/nginx-ingress
     values:
-      - controller:
-          replicaCount: 2
-          service:
-            type: LoadBalancer
-          defaultBackend:
-            enabled: true
+      - nginx-values.yaml
 
   - name: prometheus
     namespace: monitoring
     chart: prometheus-community/prometheus
     values:
-      - server:
-          service:
-            type: LoadBalancer
-          persistentVolume:
-            storageClass: "gp2"  # Aquí estableces la clase de almacenamiento
-      - alertmanager:
-          persistentVolume:
-            storageClass: "gp2"  # Aquí estableces la clase de almacenamiento para Alertmanager
+      - prometheus-values.yaml
 
   - name: grafana
     namespace: monitoring
     chart: grafana/grafana
     values:
-      - service:
-          type: LoadBalancer
-      - datasources:
-          datasources.yaml:
-            apiVersion: 1
-            datasources:
-              - name: Prometheus
-                type: prometheus
-                url: http://prometheus-server.monitoring.svc.cluster.local:9090
-                access: proxy
-                isDefault: true
+      - grafana-values.yaml
