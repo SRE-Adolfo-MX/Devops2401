@@ -5,11 +5,23 @@ service:
   port: 80
 ingress:
   enabled: false  # Deshabilitar el uso de Ingress
+  annotations: {}
+  hosts: []
+  tls: []
+
 sidecar:
   datasources:
     enabled: true
   dashboards:
     enabled: true
+
+grafana:
+  defaultDashboardsEnabled: true
+  rbac:
+    create: true
+  serviceAccount:
+    create: true
+
 
 datasources:
   - name: Prometheus
