@@ -1,0 +1,55 @@
+name: Deploy Helmfile to EKS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Helmfile to EKS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+
+      - name: Setup kubeconfig
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name eks-mundos-e
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Install Helmfile
+        run: |
+          curl -LO https://github.com/roboll/helmfile/releases/download/v0.144.0/helmfile_linux_amd64
+          chmod +x helmfile_linux_amd64
+          sudo mv helmfile_linux_amd64 /usr/local/bin/helmfile
+
+      - name: Install Helm Diff Plugin
+        run: helm plugin install https://github.com/databus23/helm-diff
+
+      - name: Sync Helmfile
+        run: |
+          cd helm/
+          helmfile sync
+
+      - name: Deploy helmfile
+        run: |
+          cd helm/
+          helmfile apply

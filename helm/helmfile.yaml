@@ -1,0 +1,29 @@
+repositories:
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+
+releases:
+  - name: nginx-ingress
+    namespace: ingress-nginx
+    chart: ingress-nginx/ingress-nginx
+    values:
+      - replicaCount: 2
+
+  - name: prometheus
+    namespace: monitoring
+    chart: prometheus-community/prometheus
+    values:
+      - server:
+          service:
+            type: LoadBalancer
+
+  - name: grafana
+    namespace: monitoring
+    chart: grafana/grafana
+    values:
+      - service:
+          type: LoadBalancer
