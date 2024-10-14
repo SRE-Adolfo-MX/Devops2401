@@ -25,6 +25,10 @@ releases:
       - server:
           service:
             type: LoadBalancer
+            port: 9090                
+            targetPort: 9090          
+            annotations:
+              service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
           persistence:
             enabled: true            # Habilitar persistencia
             storageClass: manual     # Asegúrate de que esta clase de almacenamiento exista
