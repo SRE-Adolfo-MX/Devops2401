@@ -1,17 +1,15 @@
-admin:
-  user: admin
-  password: admin123
-
+adminUser: admin
+adminPassword: admin123
 service:
-  enabled: true
-  type: LoadBalancer
-
+  type: LoadBalancer  # Exponer Grafana con un LoadBalancer
+  port: 80
 ingress:
-  enabled: true
-  hosts:
-    - grafana.local
-  annotations:
-    kubernetes.io/ingress.class: nginx
+  enabled: false  # Deshabilitar el uso de Ingress
+sidecar:
+  datasources:
+    enabled: true
+  dashboards:
+    enabled: true
 
 datasources:
   - name: Prometheus

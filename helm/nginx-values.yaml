@@ -1,18 +1,6 @@
 controller:
   service:
-    enabled: true
-    annotations:
-      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  # Utiliza un Network Load Balancer (opcional)
-      service.beta.kubernetes.io/aws-load-balancer-internal: "false"  # Asegura que el LB sea externo (público)
-    type: LoadBalancer  # Expone Nginx a Internet
-    externalTrafficPolicy: Cluster
+    type: LoadBalancer  # Esto expondrá el servicio a través de un LoadBalancer en AWS
   ingressClassResource:
-    name: nginx
-    enabled: true
-
-defaultBackend:
-  enabled: true  # Activa la página de bienvenida por defecto de Nginx
-
-rbac:
-  create: true  # Activa RBAC para el controlador de Ingress
+    default: true
 
