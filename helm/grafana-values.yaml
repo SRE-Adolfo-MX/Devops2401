@@ -7,7 +7,11 @@ serviceAccount:
 
 replicas: 1
 
-deploymentStrategy: RollingUpdate
+deploymentStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+    maxSurge: 1
 
 readinessProbe:
   httpGet:
