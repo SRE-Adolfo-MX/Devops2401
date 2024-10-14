@@ -86,7 +86,6 @@ jobs:
           issue-body: "Please approve or deny the destruction of Terraform-managed resources in the AWS environment."
           exclude-workflow-initiator-as-approver: false
 
-
       - name: Terraform Init
         working-directory: terraform/
         run: terraform init
