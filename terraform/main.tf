@@ -17,7 +17,6 @@ resource "aws_subnet" "eks_public_subnet_a" {
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
   
-  # Habilitar la asignación automática de IPs públicas
   map_public_ip_on_launch = true
 
   tags = {
@@ -30,7 +29,6 @@ resource "aws_subnet" "eks_public_subnet_b" {
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1b"
   
-  # Habilitar la asignación automática de IPs públicas
   map_public_ip_on_launch = true
 
   tags = {
@@ -74,7 +72,7 @@ resource "aws_route_table_association" "eks_public_subnet_b_assoc" {
 
 # Crear el clúster EKS
 resource "aws_eks_cluster" "eks_cluster" {
-  name     = "my-eks-cluster"
+  name     = "eks-mundos-e"
   role_arn = aws_iam_role.eks_cluster_role.arn
 
   vpc_config {
@@ -112,6 +110,11 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
   role       = aws_iam_role.eks_cluster_role.name
 }
 
+resource "aws_iam_role_policy_attachment" "eks_service_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+  role       = aws_iam_role.eks_cluster_role.name
+}
+
 # Crear grupo de nodos EKS
 resource "aws_eks_node_group" "eks_node_group" {
   cluster_name    = aws_eks_cluster.eks_cluster.name
@@ -123,11 +126,12 @@ resource "aws_eks_node_group" "eks_node_group" {
   ]
 
   scaling_config {
-    desired_size = 3
-    max_size     = 5
+    desired_size = 2
+    max_size     = 3
     min_size     = 1
   }
 
+  instance_types = ["t3.small"]
   depends_on = [aws_eks_cluster.eks_cluster]
 }
 
@@ -158,5 +162,10 @@ resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
 
 resource "aws_iam_role_policy_attachment" "eks_CNI_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.eks_node_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "eks_ecr_readonly_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_node_role.name
 }
