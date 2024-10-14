@@ -3,7 +3,7 @@ name: Deploy Helmfile to EKS
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
