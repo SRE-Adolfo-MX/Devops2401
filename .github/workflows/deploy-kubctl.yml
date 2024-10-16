@@ -1,9 +1,10 @@
 name: Deploy to EKS
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Deploy Helmfile to EKS"]
+    types:
+      - completed
 
 jobs:
   deploy:
