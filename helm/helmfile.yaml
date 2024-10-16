@@ -7,12 +7,12 @@ repositories:
 releases:
   - name: prometheus
     chart: prometheus-community/prometheus
-    namespace: monitoring
+    namespace: prometheus
     values:
       - prometheus-values.yaml
 
   - name: grafana
     chart: grafana/grafana
-    namespace: monitoring
+    namespace: grafana
     values:
       - grafana-values.yaml

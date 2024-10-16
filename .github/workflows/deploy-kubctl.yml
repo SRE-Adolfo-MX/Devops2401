@@ -30,11 +30,11 @@ jobs:
         run: |
           aws eks update-kubeconfig --name eks-mundos-e --region us-east-1
 
-      - name: Install AWS EBS CSI Driver addon
-        run: |
-          eksctl utils associate-iam-oidc-provider --region=us-east-1 --cluster=eks-mundos-e --approve
-          eksctl create iamserviceaccount --name ebs-csi-controller-sa --namespace kube-system --cluster eks-mundos-e --attach-policy-arn arn:aws:iam:aws:policy/service-role/AmazonEBSCSIDriverPolicy --approve --role-only --role-name AmazonEKS_EBS_CSI_DriverRole
-          eksctl create addon --name aws-ebs-csi-driver --cluster eks-mundos-e --region us-east-1 --service-account-role-arn arn:aws:iam:aws:policy/service-role/AmazonEBSCSIDriverPolicy --force
+      #- name: Install AWS EBS CSI Driver addon
+        #run: |
+          #eksctl utils associate-iam-oidc-provider --region=us-east-1 --cluster=eks-mundos-e --approve
+          #eksctl create iamserviceaccount --name ebs-csi-controller-sa --namespace kube-system --cluster eks-mundos-e --attach-policy-arn arn:aws:iam:aws:policy/service-role/AmazonEBSCSIDriverPolicy --approve --role-only --role-name AmazonEKS_EBS_CSI_DriverRole
+          #eksctl create addon --name aws-ebs-csi-driver --cluster eks-mundos-e --region us-east-1 --service-account-role-arn arn:aws:iam:aws:policy/service-role/AmazonEBSCSIDriverPolicy --force
 
 
       - name: Deploy YAML files to EKS

@@ -42,11 +42,11 @@ server:
       relabel_configs:
         - action: keep
           source_labels: [__meta_kubernetes_namespace]
-          regex: monitoring  # Cambia esto si usas un namespace diferente
+          regex: prometheus  # Cambia esto si usas un namespace diferente
 
   alerting:
     alertmanagers:
-      - namespace: monitoring
+      - namespace: prometheus
         name: prometheus-alertmanager
         port: web
 
