@@ -16,7 +16,7 @@ resource "aws_subnet" "eks_public_subnet_a" {
   vpc_id            = aws_vpc.eks_vpc.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
-
+  
   map_public_ip_on_launch = true
 
   tags = {
@@ -28,7 +28,7 @@ resource "aws_subnet" "eks_public_subnet_b" {
   vpc_id            = aws_vpc.eks_vpc.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1b"
-
+  
   map_public_ip_on_launch = true
 
   tags = {
@@ -168,68 +168,4 @@ resource "aws_iam_role_policy_attachment" "eks_CNI_policy" {
 resource "aws_iam_role_policy_attachment" "eks_ecr_readonly_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_node_role.name
-}
-
-# Crear la política y rol para el controlador de EBS CSI
-resource "aws_iam_policy" "amazon_ebs_csi_driver_policy" {
-  name        = "AmazonEBSCSIDriverPolicy"
-  description = "Policy for Amazon EBS CSI Driver"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "ec2:AttachVolume",
-          "ec2:CreateVolume",
-          "ec2:DeleteVolume",
-          "ec2:DescribeVolumes",
-          "ec2:DescribeVolumeStatus",
-          "ec2:DetachVolume",
-          "ec2:ModifyVolume",
-          "ec2:DescribeSnapshots",
-          "ec2:CreateSnapshot",
-          "ec2:DeleteSnapshot",
-          "ec2:DescribeInstances",
-          "ec2:DescribeTags"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role" "amazon_ebs_csi_driver_role" {
-  name = "AmazonEBSCSIDriverRole"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Principal = {
-          Service = "eks.amazonaws.com"
-        }
-        Effect = "Allow"
-        Sid    = ""
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "amazon_ebs_csi_driver_policy_attachment" {
-  role       = aws_iam_role.amazon_ebs_csi_driver_role.name
-  policy_arn = aws_iam_policy.amazon_ebs_csi_driver_policy.arn
-}
-
-resource "kubernetes_service_account" "ebs_csi_service_account" {
-  metadata {
-    name      = "ebs-csi-controller-sa"
-    namespace = "kube-system"
-
-    annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.amazon_ebs_csi_driver_role.arn
-    }
-  }
 }
