@@ -20,6 +20,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: us-east-1
 
+      - name: Install AWS EBS CSI Driver addon
+        run: |
+          eksctl create addon --name aws-ebs-csi-driver --cluster eks-mundos-e --region us-east-1
+
       - name: Update kubeconfig
         run: |
           aws eks update-kubeconfig --name eks-mundos-e --region us-east-1
