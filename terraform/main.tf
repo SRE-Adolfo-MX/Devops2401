@@ -85,7 +85,8 @@ resource "aws_iam_policy" "eks_admin_policy" {
           "ec2:*",        # Permisos para manejar EC2
           "elasticloadbalancing:*", # Permisos para manejar ELBs
           "autoscaling:*", # Permisos para manejar Auto Scaling
-          "iam:PassRole"   # Permiso para pasar roles a servicios de AWS
+          "iam:PassRole",   # Permiso para pasar roles a servicios de AWS
+          "sts:*"
         ],
         Resource = "*"
       }
