@@ -2,7 +2,7 @@ name: Deploy Helmfile to EKS
 
 on:
   workflow_run:
-    workflows: ["Deploy Helmfile to EKS"]
+    workflows: ["Deploy to EKS"]
     types:
       - completed
 
