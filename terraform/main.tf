@@ -70,19 +70,27 @@ resource "aws_route_table_association" "eks_public_subnet_b_assoc" {
   route_table_id = aws_route_table.eks_public_rt.id
 }
 
-# Crear el clúster EKS
-resource "aws_eks_cluster" "eks_cluster" {
-  name     = "eks-mundos-e"
-  role_arn = aws_iam_role.eks_cluster_role.arn
+# Crear la política de administración para EKS
+resource "aws_iam_policy" "eks_admin_policy" {
+  name        = "EKSAdminPolicy"
+  description = "Policy for EKS admin access"
 
-  vpc_config {
-    subnet_ids = [
-      aws_subnet.eks_public_subnet_a.id,
-      aws_subnet.eks_public_subnet_b.id
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "eks:*",        # Permisos sobre el cluster EKS
+          "ec2:*",        # Permisos para manejar EC2
+          "elasticloadbalancing:*", # Permisos para manejar ELBs
+          "autoscaling:*", # Permisos para manejar Auto Scaling
+          "iam:PassRole"   # Permiso para pasar roles a servicios de AWS
+        ],
+        Resource = "*"
+      }
     ]
-  }
-
-  depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
+  })
 }
 
 # Crear el rol de IAM para el clúster EKS
@@ -115,24 +123,25 @@ resource "aws_iam_role_policy_attachment" "eks_service_policy" {
   role       = aws_iam_role.eks_cluster_role.name
 }
 
-# Crear grupo de nodos EKS
-resource "aws_eks_node_group" "eks_node_group" {
-  cluster_name    = aws_eks_cluster.eks_cluster.name
-  node_group_name = "my-node-group"
-  node_role_arn   = aws_iam_role.eks_node_role.arn
-  subnet_ids      = [
-    aws_subnet.eks_public_subnet_a.id,
-    aws_subnet.eks_public_subnet_b.id
-  ]
+# Adjuntar política de administración personalizada al rol del clúster EKS
+resource "aws_iam_role_policy_attachment" "eks_admin_policy_attachment_cluster" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = aws_iam_policy.eks_admin_policy.arn
+}
 
-  scaling_config {
-    desired_size = 3
-    max_size     = 5
-    min_size     = 1
+# Crear el clúster EKS
+resource "aws_eks_cluster" "eks_cluster" {
+  name     = "eks-mundos-e"
+  role_arn = aws_iam_role.eks_cluster_role.arn
+
+  vpc_config {
+    subnet_ids = [
+      aws_subnet.eks_public_subnet_a.id,
+      aws_subnet.eks_public_subnet_b.id
+    ]
   }
 
-  instance_types = ["t3.large"]
-  depends_on = [aws_eks_cluster.eks_cluster]
+  depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
 }
 
 # Crear el rol de IAM para los nodos EKS
@@ -168,4 +177,30 @@ resource "aws_iam_role_policy_attachment" "eks_CNI_policy" {
 resource "aws_iam_role_policy_attachment" "eks_ecr_readonly_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
   role       = aws_iam_role.eks_node_role.name
+}
+
+# Adjuntar política de administración personalizada a los nodos EKS
+resource "aws_iam_role_policy_attachment" "eks_admin_policy_attachment_nodes" {
+  role       = aws_iam_role.eks_node_role.name
+  policy_arn = aws_iam_policy.eks_admin_policy.arn
+}
+
+# Crear grupo de nodos EKS
+resource "aws_eks_node_group" "eks_node_group" {
+  cluster_name    = aws_eks_cluster.eks_cluster.name
+  node_group_name = "my-node-group"
+  node_role_arn   = aws_iam_role.eks_node_role.arn
+  subnet_ids      = [
+    aws_subnet.eks_public_subnet_a.id,
+    aws_subnet.eks_public_subnet_b.id
+  ]
+
+  scaling_config {
+    desired_size = 3
+    max_size     = 5
+    min_size     = 1
+  }
+
+  instance_types = ["t3.large"]
+  depends_on = [aws_eks_cluster.eks_cluster]
 }

@@ -2,7 +2,7 @@ name: Deploy to EKS
 
 on:
   workflow_run:
-    workflows: ["Deploy Helmfile to EKS"]
+    workflows: ["Deploy Terraform to AWS"]
     types:
       - completed
 
