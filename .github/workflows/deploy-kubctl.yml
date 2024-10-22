@@ -41,7 +41,7 @@ jobs:
 
       - name: Deploy YAML files to EKS
         run: |
-          kubectl create namespace nginx
+          kubectl get namespace nginx || kubectl create namespace nginx
           kubectl apply -f kubernetes/deployment_nginx.yaml
           kubectl apply -f kubernetes/ingres_nginx.yaml
           kubectl apply -f kubernetes/service_nginx.yaml
