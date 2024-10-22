@@ -1,0 +1,10 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp2
+provisioner: kubernetes.io/aws-ebs  # Proveedor para EBS en AWS
+parameters:
+  type: gp2  # Tipo de volumen EBS
+  fsType: ext4  # Tipo de sistema de archivos
+reclaimPolicy: Retain  # O "Delete" si quieres que se elimine el volumen al eliminar el PVC
+volumeBindingMode: WaitForFirstConsumer  # O "Immediate" según tus necesidades

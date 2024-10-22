@@ -6,7 +6,7 @@ alertmanager:
     storageClass: gp2  # Asegúrate de que sea el StorageClass correcto para EKS
   service:
     enabled: true
-    type: ClusterIP  # Puedes cambiar a NodePort o LoadBalancer si necesitas acceso externo
+    type: ClusterIP  # Cambia a NodePort o LoadBalancer si necesitas acceso externo
     annotations: {}
   resources:
     requests:

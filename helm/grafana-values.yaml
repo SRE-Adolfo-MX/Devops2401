@@ -1,10 +1,10 @@
 persistence:
   enabled: true
-  storageClassName: gp2
-  size: 10Gi
-  existingClaim: grafana-pvc
+  existingClaim: grafana-pvc  # Usa el PVC existente de Grafana
+  storageClassName: gp2  # Asegúrate de que este StorageClass esté configurado en tu cluster
+  size: 10Gi  # Tamaño del almacenamiento que deseas para Grafana
 
 adminPassword: 'EKS!sAWSome'
 
 service:
-  type: LoadBalancer
+  type: LoadBalancer  # Tipo de servicio para acceso externo

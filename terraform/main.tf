@@ -81,12 +81,13 @@ resource "aws_iam_policy" "eks_admin_policy" {
       {
         Effect = "Allow",
         Action = [
-          "eks:*",        # Permisos sobre el cluster EKS
-          "ec2:*",        # Permisos para manejar EC2
-          "elasticloadbalancing:*", # Permisos para manejar ELBs
-          "autoscaling:*", # Permisos para manejar Auto Scaling
-          "iam:PassRole",   # Permiso para pasar roles a servicios de AWS
-          "sts:*"
+          "eks:*",  # Permisos sobre el cluster EKS
+          "ec2:*",  # Permisos para manejar EC2
+          "elasticloadbalancing:*",  # Permisos para manejar ELBs
+          "autoscaling:*",  # Permisos para manejar Auto Scaling
+          "iam:PassRole",  # Permiso para pasar roles a servicios de AWS
+          "sts:AssumeRole",  # Permiso para asumir roles
+          "sts:GetCallerIdentity"  # Permiso para obtener la identidad del llamador
         ],
         Resource = "*"
       }
