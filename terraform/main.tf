@@ -206,3 +206,24 @@ resource "aws_eks_node_group" "eks_node_group" {
   instance_types = ["t3.large"]
   depends_on = [aws_eks_cluster.eks_cluster]
 }
+
+resource "aws_iam_policy" "allow_assume_role_with_web_identity" {
+  name        = "AllowAssumeRoleWithWebIdentity"
+  description = "Policy to allow assuming roles with web identity"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = "sts:AssumeRoleWithWebIdentity",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "attach_assume_role_policy" {
+  role       = aws_iam_role.eks_node_role.name
+  policy_arn = aws_iam_policy.allow_assume_role_with_web_identity.arn
+}
