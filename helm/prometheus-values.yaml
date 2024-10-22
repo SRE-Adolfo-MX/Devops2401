@@ -3,20 +3,29 @@ alertmanager:
   persistentVolume:
     enabled: true
     size: 2Gi
-    storageClass: gp2  # Cambia esto según tu configuración de EKS
+    storageClass: gp2  # Asegúrate de que sea el StorageClass correcto para EKS
+  service:
+    enabled: true
+    type: ClusterIP  # Puedes cambiar a NodePort o LoadBalancer si necesitas acceso externo
+    annotations: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
 
 server:
   persistentVolume:
     enabled: true
     size: 5Gi
-    storageClass: gp2  # Cambia esto según tu configuración de EKS
-
+    storageClass: gp2  # Asegúrate de que sea el StorageClass correcto para EKS
   service:
     enabled: true
     type: ClusterIP  # Cambia a NodePort o LoadBalancer si necesitas acceso externo
     annotations:
-      service.beta.kubernetes.io/aws-load-balancer-type: "nlb" # Si necesitas un NLB en EKS
-
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  # Si necesitas NLB en EKS
   resources:
     requests:
       cpu: 100m
@@ -24,8 +33,8 @@ server:
     limits:
       cpu: 200m
       memory: 512Mi
-
   retention: 30d  # Tiempo de retención de datos
+  retentionSize: 10Gi  # Tamaño máximo de almacenamiento de Prometheus
 
   scrapeConfigs:
     - job_name: 'kubernetes-nodes'
@@ -52,8 +61,21 @@ server:
 
 serviceAccount:
   create: true  # Crea un ServiceAccount para Prometheus
-  name: prometheus # Nombre del ServiceAccount
+  name: prometheus  # Nombre del ServiceAccount
 
-# Configura la política de RBAC si es necesario
 rbac:
-  create: true
+  create: true  # Crea las políticas RBAC necesarias
+
+# Configuración de réplicas para alta disponibilidad (opcional)
+replicaCount: 1  # Cambia a 2 o más si necesitas alta disponibilidad para Prometheus
+alertmanagerReplicaCount: 1  # Cambia a 2 o más para alta disponibilidad de Alertmanager
+
+# Configuración de tolerations o nodeSelector (opcional)
+nodeSelector: {}
+tolerations: []
+
+# Si usas Thanos para almacenamiento a largo plazo (opcional)
+# thanos:
+#   create: false
+#   sidecar:
+#     resources: {}
