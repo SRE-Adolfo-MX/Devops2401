@@ -2,6 +2,7 @@ persistence:
   enabled: true
   storageClassName: gp2
   size: 10Gi
+  existingClaim: grafana-pvc
 
 adminPassword: 'EKS!sAWSome'
 

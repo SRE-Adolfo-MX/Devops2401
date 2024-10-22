@@ -45,3 +45,4 @@ jobs:
           kubectl apply -f kubernetes/deployment_nginx.yaml
           kubectl apply -f kubernetes/ingres_nginx.yaml
           kubectl apply -f kubernetes/service_nginx.yaml
+          kubectl apply - f kubernetes/pv_volumes.yaml

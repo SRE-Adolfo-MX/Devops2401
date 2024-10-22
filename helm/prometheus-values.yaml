@@ -21,6 +21,7 @@ server:
     enabled: true
     size: 5Gi
     storageClass: gp2  # Asegúrate de que sea el StorageClass correcto para EKS
+    existingClaim: prometheus-pvc  # Usar el PVC existente para Prometheus
   service:
     enabled: true
     type: ClusterIP  # Cambia a NodePort o LoadBalancer si necesitas acceso externo
