@@ -16,7 +16,7 @@ resource "aws_subnet" "eks_public_subnet_a" {
   vpc_id            = aws_vpc.eks_vpc.id
   cidr_block        = "10.0.1.0/24"
   availability_zone = "us-east-1a"
-  
+
   map_public_ip_on_launch = true
 
   tags = {
@@ -28,7 +28,7 @@ resource "aws_subnet" "eks_public_subnet_b" {
   vpc_id            = aws_vpc.eks_vpc.id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "us-east-1b"
-  
+
   map_public_ip_on_launch = true
 
   tags = {
@@ -81,13 +81,13 @@ resource "aws_iam_policy" "eks_admin_policy" {
       {
         Effect = "Allow",
         Action = [
-          "eks:*",  # Permisos sobre el cluster EKS
-          "ec2:*",  # Permisos para manejar EC2
-          "elasticloadbalancing:*",  # Permisos para manejar ELBs
-          "autoscaling:*",  # Permisos para manejar Auto Scaling
-          "iam:PassRole",  # Permiso para pasar roles a servicios de AWS
-          "sts:AssumeRole",  # Permiso para asumir roles
-          "sts:GetCallerIdentity"  # Permiso para obtener la identidad del llamador
+          "eks:*",                     # Permisos sobre el cluster EKS
+          "ec2:*",                     # Permisos para manejar EC2
+          "elasticloadbalancing:*",    # Permisos para manejar ELBs
+          "autoscaling:*",             # Permisos para manejar Auto Scaling
+          "iam:PassRole",              # Permiso para pasar roles a servicios de AWS
+          "sts:AssumeRole",            # Permiso para asumir roles
+          "sts:GetCallerIdentity"      # Permiso para obtener la identidad del llamador
         ],
         Resource = "*"
       }
@@ -100,14 +100,14 @@ resource "aws_iam_role" "eks_cluster_role" {
   name = "eks_cluster_role"
 
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Action = "sts:AssumeRole"
+        Action = "sts:AssumeRole",
         Principal = {
           Service = "eks.amazonaws.com"
-        }
-        Effect = "Allow"
+        },
+        Effect = "Allow",
         Sid    = ""
       }
     ]
@@ -151,14 +151,14 @@ resource "aws_iam_role" "eks_node_role" {
   name = "eks_node_role"
 
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Action = "sts:AssumeRole"
+        Action = "sts:AssumeRole",
         Principal = {
           Service = "ec2.amazonaws.com"
-        }
-        Effect = "Allow"
+        },
+        Effect = "Allow",
         Sid    = ""
       }
     ]
